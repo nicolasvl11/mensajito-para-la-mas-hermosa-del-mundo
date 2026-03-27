@@ -1,0 +1,124 @@
+
+<style>
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+  @keyframes float { 0%,100%{transform:translateY(0) rotate(0deg);opacity:.18} 50%{transform:translateY(-22px) rotate(12deg);opacity:.32} }
+  @keyframes shimmer { 0%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1} 100%{opacity:0;transform:scale(1.6) rotate(180deg)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes sparkle { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)} }
+  @keyframes heartOpen { 0%{transform:scale(1)} 30%{transform:scale(1.18)} 60%{transform:scale(0.9) rotate(8deg)} 100%{transform:scale(0) rotate(20deg);opacity:0} }
+  @keyframes hintPulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+</style>
+
+<div id="scene" style="background:#180810;min-height:480px;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;position:relative;overflow:hidden;border-radius:16px;font-family:Georgia,'Palatino Linotype',Palatino,serif;">
+
+  <!-- Floating bg hearts -->
+  <div id="bg-hearts"></div>
+
+  <!-- Heart to click -->
+  <div id="heart-wrap" style="text-align:center;cursor:pointer;z-index:10;position:relative;" onclick="openHeart()">
+    <svg id="heart-svg" viewBox="0 0 200 190" width="200" height="190" style="animation:pulse 2s ease-in-out infinite;filter:drop-shadow(0 0 18px #c0394a88);display:block;margin:auto;">
+      <defs>
+        <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e8506a"/>
+          <stop offset="100%" stop-color="#8b1a2e"/>
+        </linearGradient>
+      </defs>
+      <path d="M100 168 C100 168 18 115 18 62 C18 36 38 14 64 14 C79 14 93 22 100 34 C107 22 121 14 136 14 C162 14 182 36 182 62 C182 115 100 168 100 168Z" fill="url(#hg)"/>
+      <path d="M58 52 C58 44 66 38 75 42" stroke="#f5a0b0" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
+    </svg>
+    <p id="hint" style="color:#e8506a;font-size:12px;margin-top:10px;letter-spacing:2px;text-transform:uppercase;animation:hintPulse 2s ease-in-out infinite;">toca para abrir</p>
+  </div>
+
+  <!-- Letter (hidden) -->
+  <div id="letter-wrap" style="display:none;text-align:center;max-width:360px;z-index:10;position:relative;">
+    <div id="small-heart" style="color:#c0394a;font-size:22px;margin-bottom:1.2rem;opacity:0;animation:fadeUp .8s ease .3s forwards;">♥</div>
+    <div id="letter-text" style="color:#f0d8c8;font-size:1.25rem;line-height:2;font-style:italic;min-height:80px;opacity:0;transition:opacity .8s ease;"></div>
+    <span id="cursor" style="display:none;color:#e8506a;animation:blink 1s step-end infinite;font-size:1.25rem;">|</span>
+    <div id="counter" style="color:#c0394a;margin-top:2.2rem;font-size:0.78rem;letter-spacing:2.5px;text-transform:uppercase;opacity:0;transition:opacity 1.2s ease;border-top:1px solid #3a1020;padding-top:1rem;"></div>
+    <div id="heart-small-footer" style="color:#8b1a2e;font-size:14px;margin-top:.8rem;opacity:0;transition:opacity 1.2s ease .3s;">♥</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const bgEl = document.getElementById('bg-hearts');
+  const hearts = ['♥','♡'];
+  for(let i=0;i<12;i++){
+    const s = document.createElement('span');
+    const size = 10 + Math.random()*18;
+    s.textContent = hearts[Math.floor(Math.random()*2)];
+    s.style.cssText = `position:absolute;font-size:${size}px;color:#c0394a;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:float ${4+Math.random()*5}s ease-in-out ${Math.random()*4}s infinite;pointer-events:none;`;
+    bgEl.appendChild(s);
+  }
+
+  window.openHeart = function(){
+    const hw = document.getElementById('heart-wrap');
+    const svg = document.getElementById('heart-svg');
+    const hint = document.getElementById('hint');
+    const lw = document.getElementById('letter-wrap');
+
+    hw.style.pointerEvents = 'none';
+    hint.style.display = 'none';
+
+    // Spark particles
+    const scene = document.getElementById('scene');
+    for(let i=0;i<14;i++){
+      const p = document.createElement('div');
+      const angle = (i/14)*360;
+      const dist = 60+Math.random()*40;
+      const dx = Math.cos(angle*Math.PI/180)*dist+'px';
+      const dy = Math.sin(angle*Math.PI/180)*dist+'px';
+      p.style.cssText = `position:absolute;width:6px;height:6px;border-radius:50%;background:${['#e8506a','#f5a0b0','#ffe0e8','#c0394a'][i%4]};top:50%;left:50%;--dx:${dx};--dy:${dy};animation:sparkle .7s ease-out forwards;pointer-events:none;`;
+      scene.appendChild(p);
+      setTimeout(()=>p.remove(),800);
+    }
+
+    svg.style.animation = 'heartOpen .7s ease forwards';
+
+    setTimeout(()=>{
+      hw.style.display = 'none';
+      lw.style.display = 'block';
+      lw.style.opacity = '0';
+      lw.style.transition = 'opacity .8s ease';
+      setTimeout(()=>{
+        lw.style.opacity = '1';
+        const lt = document.getElementById('letter-text');
+        lt.style.opacity = '1';
+        document.getElementById('cursor').style.display = 'inline';
+        startTypewriter();
+      }, 80);
+    }, 680);
+  };
+
+  function startTypewriter(){
+    const text = "Tú tienes esas pequeñas partes\nde mi corazón\nque jamás pensé\ndarle a alguien";
+    const el = document.getElementById('letter-text');
+    const cursor = document.getElementById('cursor');
+    let i = 0;
+    function type(){
+      if(i < text.length){
+        if(text[i]==='\n') el.innerHTML += '<br>';
+        else el.innerHTML += text[i];
+        i++;
+        setTimeout(type, 75 + Math.random()*60);
+      } else {
+        cursor.style.display = 'none';
+        showCounter();
+      }
+    }
+    type();
+  }
+
+  function showCounter(){
+    const start = new Date('2026-01-15T00:00:00');
+    const today = new Date();
+    const days = Math.floor((today - start)/(1000*60*60*24));
+    const c = document.getElementById('counter');
+    const f = document.getElementById('heart-small-footer');
+    c.textContent = `${days} días caminando de la mano de mi persona favorita por siempre`;
+    setTimeout(()=>{ c.style.opacity='1'; f.style.opacity='1'; }, 300);
+  }
+})();
+</script>
